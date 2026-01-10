@@ -130,8 +130,13 @@ void echo(char **words, size_t count) {
 }
 
 void type(const char *cmd) {
+  if (cmd == NULL || strcmp("", cmd) == 0) {
+    return;
+  }
+
   if (strcmp("echo", cmd) == 0 || strcmp("type", cmd) == 0 ||
-      strcmp("exit", cmd) == 0) {
+      strcmp("exit", cmd) == 0 || strcmp("pwd", cmd) == 0 ||
+      strcmp("cd", cmd) == 0) {
     printf("%s is a shell builtin\n", cmd);
     return;
   }
@@ -142,6 +147,24 @@ void type(const char *cmd) {
     free(filePath);
   } else {
     printf("%s: not found\n", cmd);
+  }
+}
+
+void pwd() {
+  char *cwd = malloc(DIRECTORY_SIZE);
+  if (getcwd(cwd, DIRECTORY_SIZE) != NULL) {
+    printf("%s\n", cwd);
+    free(cwd);
+  }
+}
+
+void cd(const char *target) {
+  if (target != NULL) {
+    if (strcmp(target, "~") == 0) {
+      chdir(getenv("HOME"));
+    } else if (chdir(target) != 0) {
+      printf("cd: %s: No such file or directory\n", target);
+    }
   }
 }
 
@@ -176,6 +199,10 @@ int main(int argc, char *argv[]) {
       echo(words, count);
     } else if (strcmp("type", words[0]) == 0) {
       type(words[1]);
+    } else if (strcmp("pwd", words[0]) == 0) {
+      pwd();
+    } else if (strcmp("cd", words[0]) == 0) {
+      cd(words[1]);
     } else if (!tryExecExternal(words[0], cmd)) {
       printf("%s: command not found\n", cmd);
     }
